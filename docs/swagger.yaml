@@ -1,0 +1,314 @@
+definitions:
+  models.EndTask:
+    properties:
+      task_name:
+        type: string
+      user_name:
+        type: string
+    type: object
+  models.Labor:
+    properties:
+      count_tasks:
+        type: integer
+      time_result:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  models.PassportDocument:
+    properties:
+      passportNumber:
+        type: string
+    type: object
+  models.StartTask:
+    properties:
+      task_name:
+        type: string
+      user_name:
+        type: string
+    type: object
+  models.Users:
+    properties:
+      address:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      passportNumber:
+        type: string
+      passportSerie:
+        type: string
+      patronymic:
+        type: string
+      surname:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /add_user:
+    post:
+      consumes:
+      - application/json
+      description: add new user by passport if exist
+      parameters:
+      - description: add new user by passport json
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.PassportDocument'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Add new user by passport
+      tags:
+      - users
+  /add_user_api:
+    post:
+      consumes:
+      - application/json
+      description: get Labor Costs by User ID asd
+      parameters:
+      - description: add new user json
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.Users'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Add new user
+      tags:
+      - users
+  /delete_user/{user_id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete user
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Delete users
+      tags:
+      - users
+  /end_task:
+    put:
+      consumes:
+      - application/json
+      description: End users task by username
+      parameters:
+      - description: end task json
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.EndTask'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: EndTask
+      tags:
+      - tasks
+  /get_all_users:
+    get:
+      consumes:
+      - application/json
+      description: Get list users with filters by fields and pagination by limit and
+        offset
+      parameters:
+      - description: Limit
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        required: true
+        type: integer
+      - description: Name
+        in: query
+        name: name
+        type: string
+      - description: Surname
+        in: query
+        name: surname
+        type: string
+      - description: Patronimyc
+        in: query
+        name: patronimyc
+        type: string
+      - description: Address
+        in: query
+        name: address
+        type: string
+      - description: PassportSerialNumber
+        in: query
+        name: passportSerialNumber
+        type: string
+      - description: PassportNumber
+        in: query
+        name: passportNumber
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Get list users
+      tags:
+      - users
+  /get_labor_costs:
+    get:
+      consumes:
+      - application/json
+      description: get Labor Costs by User ID asd
+      parameters:
+      - description: User ID
+        in: query
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: get Labor Costs by User ID
+      tags:
+      - labor
+  /get_user:
+    get:
+      consumes:
+      - application/json
+      description: Get user by user id
+      parameters:
+      - description: User ID
+        in: query
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Get user
+      tags:
+      - users
+  /start_task:
+    put:
+      consumes:
+      - application/json
+      description: Start users task by username
+      parameters:
+      - description: start task json
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.StartTask'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: StartTask
+      tags:
+      - tasks
+  /update_user:
+    put:
+      consumes:
+      - application/json
+      description: update user info
+      parameters:
+      - description: update user json
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.Users'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Update users
+      tags:
+      - users
+swagger: "2.0"
