@@ -17,14 +17,6 @@ func BeginTransaction(userRepository *UserRepository) error {
 	return nil
 }
 
-func RollbackTransaction(userRepository *UserRepository) error {
-	transaction := userRepository.transaction
-
-	userRepository.transaction = nil
-
-	return transaction.Rollback()
-}
-
 func CommitTransaction(userRepository *UserRepository) error {
 	transaction := userRepository.transaction
 
