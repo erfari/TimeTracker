@@ -1,4 +1,4 @@
-package server
+package app
 
 import (
 	"database/sql"
@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-func InitDatabase(config *viper.Viper) *sql.DB {
+func InitDatabase(config *viper.Viper) (*sql.DB, error) {
 	driver := config.GetString("DB_DRIVER")
 	connectionString := config.GetString("DB_CONN")
 	if connectionString == "" {
@@ -17,5 +17,5 @@ func InitDatabase(config *viper.Viper) *sql.DB {
 		dbHandler.Close()
 		log.Fatalf("Error while validating database: %v", err)
 	}
-	return dbHandler
+	return dbHandler, nil
 }

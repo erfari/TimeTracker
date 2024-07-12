@@ -18,11 +18,6 @@ ALTER TABLE tasks
             REFERENCES users (id)
             ON DELETE CASCADE;
 
-INSERT INTO tasks(task_name, assignee_name, assignee_user_id, start_task, end_task)
-values ('task1', 'test1', 1, '2024-07-09 11:13:10.000000', '2024-07-09 13:13:10.000000');
-
-INSERT INTO tasks(task_name, assignee_name, assignee_user_id, start_task, end_task)
-values ('task1', 'test1', 1, '2024-07-09 11:13:10.000000', '2024-07-09 13:02:10.000000');
 -- +goose StatementEnd
 
 -- +goose Down

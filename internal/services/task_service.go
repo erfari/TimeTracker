@@ -1,8 +1,8 @@
 package services
 
 import (
-	"TimeTracker/models"
-	"TimeTracker/repository"
+	"TimeTracker/api/types"
+	"TimeTracker/internal/repository"
 	"math"
 	"strconv"
 )
@@ -18,7 +18,7 @@ func NewTaskService(
 	}
 }
 
-func (ts *TaskService) GetLaborCostsByUserId(userId int) ([]*models.Task, *models.ResponseError) {
+func (ts *TaskService) GetLaborCostsByUserId(userId int) ([]*types.Task, *types.ResponseError) {
 	tasks, responseErr := ts.taskRepository.GetLabors(userId)
 	if responseErr != nil {
 		return nil, responseErr
@@ -33,10 +33,10 @@ func (ts *TaskService) GetLaborCostsByUserId(userId int) ([]*models.Task, *model
 	return tasks, nil
 }
 
-func (ts *TaskService) StartTask(startTask *models.StartTask) *models.ResponseError {
+func (ts *TaskService) StartTask(startTask *types.StartTask) *types.ResponseError {
 	return ts.taskRepository.StartTask(startTask)
 }
 
-func (ts *TaskService) EndTask(endTask *models.EndTask) *models.ResponseError {
+func (ts *TaskService) EndTask(endTask *types.EndTask) *types.ResponseError {
 	return ts.taskRepository.EndTask(endTask)
 }

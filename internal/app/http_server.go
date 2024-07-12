@@ -1,10 +1,10 @@
-package server
+package app
 
 import (
-	"TimeTracker/controllers"
 	"TimeTracker/docs"
-	"TimeTracker/repository"
-	"TimeTracker/services"
+	controllers "TimeTracker/internal/controllers"
+	repository "TimeTracker/internal/repository"
+	services "TimeTracker/internal/services"
 	"database/sql"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -19,7 +19,7 @@ type HttpServer struct {
 	userController *controllers.UserController
 }
 
-func InitHttpServer(config *viper.Viper, dbHandler *sql.DB) HttpServer {
+func InitHttpServer(config *viper.Viper, dbHandler *sql.DB) (HttpServer, error) {
 	//user
 	userRepository := repository.NewUserRepository(dbHandler)
 	userService := services.NewUserService(userRepository)
@@ -47,16 +47,16 @@ func InitHttpServer(config *viper.Viper, dbHandler *sql.DB) HttpServer {
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	docs.SwaggerInfo.Description = "This is a sample server Petstore server."
+	docs.SwaggerInfo.Description = "This is a sample time tracker server."
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "petstore.swagger.io"
+	docs.SwaggerInfo.Host = "time tracker.swagger.io"
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
 	return HttpServer{
 		config:         config,
 		router:         router,
 		userController: userController,
-	}
+	}, nil
 }
 
 func (hs HttpServer) Start() {

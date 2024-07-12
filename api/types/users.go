@@ -1,4 +1,4 @@
-package models
+package types
 
 type Users struct {
 	ID             string `json:"id,omitempty"`
@@ -6,7 +6,7 @@ type Users struct {
 	Surname        string `json:"surname,omitempty"`
 	Patronymic     string `json:"patronymic,omitempty"`
 	Address        string `json:"address,omitempty"`
-	PassportSerie  string `json:"passportSerie,omitempty"`
+	PassportSerial string `json:"passportSerial,omitempty"`
 	PassportNumber string `json:"passportNumber,omitempty"`
 }
 

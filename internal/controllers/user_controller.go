@@ -1,8 +1,7 @@
 package controllers
 
 import (
-	"TimeTracker/models"
-	"TimeTracker/services"
+	"TimeTracker/api/types"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"io"
@@ -11,11 +10,21 @@ import (
 	"strconv"
 )
 
-type UserController struct {
-	userService *services.UserService
+type UserService interface {
+	AddUserApi(passport *types.PassportDocument) (*types.Users, *types.ResponseError)
+	AddUser(user *types.Users) (*types.Users, *types.ResponseError)
+	UpdateUser(user *types.Users) *types.ResponseError
+	DeleteUser(userId string) *types.ResponseError
+	GetUser(userId string) (*types.Users, *types.ResponseError)
+	GetUsersBach(limit int, offset int, name, surname, patronimyc, address, passportSerialNumber, passportNumber string) ([]*types.Users, *types.ResponseError)
+	Info(passportSerial string, passportNumber string) (*types.Users, *types.ResponseError)
 }
 
-func NewUserController(userService *services.UserService) *UserController {
+type UserController struct {
+	userService UserService
+}
+
+func NewUserController(userService UserService) *UserController {
 	return &UserController{
 		userService: userService,
 	}
@@ -27,8 +36,8 @@ func NewUserController(userService *services.UserService) *UserController {
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param        request body models.Users true "add new user json"
-// @Success      200  {object}  models.Users
+// @Param        request body types.Users true "add new user json"
+// @Success      200  {object}  types.Users
 // @Failure      400
 // @Failure      404
 // @Failure      500
@@ -38,14 +47,14 @@ func (uc UserController) AddUserApi(ctx *gin.Context) {
 	body, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
 		log.Println("Error while reading create user request body", err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		return
 	}
-	var userDocument models.PassportDocument
+	var userDocument types.PassportDocument
 	err = json.Unmarshal(body, &userDocument)
 	if err != nil {
 		log.Println("Error while unmarshaling create user request body", err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		return
 	}
 	response, responseErr := uc.userService.AddUserApi(&userDocument)
@@ -62,8 +71,8 @@ func (uc UserController) AddUserApi(ctx *gin.Context) {
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param        request body models.PassportDocument true "add new user by passport json"
-// @Success      200  {object}  models.Users
+// @Param        request body types.PassportDocument true "add new user by passport json"
+// @Success      200  {object}  types.Users
 // @Failure      400
 // @Failure      404
 // @Failure      500
@@ -73,14 +82,18 @@ func (uc UserController) AddUser(ctx *gin.Context) {
 	body, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
 		log.Println("Error while reading create user request body", err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"message": err.Error(),
+		})
 		return
 	}
-	var user models.Users
+	var user types.Users
 	err = json.Unmarshal(body, &user)
 	if err != nil {
 		log.Println("Error while unmarshaling create user request body", err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"message": err.Error(),
+		})
 		return
 	}
 	response, responseErr := uc.userService.AddUser(&user)
@@ -97,8 +110,8 @@ func (uc UserController) AddUser(ctx *gin.Context) {
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param        request body models.Users true "update user json"
-// @Success      200  {object}  models.Users
+// @Param        request body types.Users true "update user json"
+// @Success      200  {object}  types.Users
 // @Failure      400
 // @Failure      404
 // @Failure      500
@@ -108,14 +121,18 @@ func (uc UserController) UpdateUser(ctx *gin.Context) {
 	body, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
 		log.Println("Error while reading update user request body", err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"message": err.Error(),
+		})
 		return
 	}
-	var user models.Users
+	var user types.Users
 	err = json.Unmarshal(body, &user)
 	if err != nil {
 		log.Println("Error while unmarshaling update user request body", err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"message": err.Error(),
+		})
 		return
 	}
 	responseErr := uc.userService.UpdateUser(&user)
@@ -123,7 +140,7 @@ func (uc UserController) UpdateUser(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(responseErr.Status, responseErr)
 		return
 	}
-	ctx.Status(http.StatusNoContent)
+	ctx.Status(http.StatusOK)
 }
 
 // @Summary Delete users
@@ -133,7 +150,7 @@ func (uc UserController) UpdateUser(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param        user_id   path      int  true  "User ID"
-// @Success      200  {object}  models.Users
+// @Success      204  {object}  types.Users
 // @Failure      400
 // @Failure      404
 // @Failure      500
@@ -156,7 +173,7 @@ func (uc UserController) DeleteUser(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param        user_id   query      int  true  "User ID" optional
-// @Success      200  {object}  models.Users
+// @Success      200  {object}  types.Users
 // @Failure      400
 // @Failure      404
 // @Failure      500
@@ -166,7 +183,7 @@ func (uc UserController) GetUser(ctx *gin.Context) {
 	userId := ctx.Query("id")
 	response, responseErr := uc.userService.GetUser(userId)
 	if responseErr != nil {
-		ctx.JSON(responseErr.Status, responseErr)
+		ctx.AbortWithStatusJSON(responseErr.Status, responseErr)
 		return
 	}
 	ctx.JSON(http.StatusOK, response)
@@ -186,7 +203,7 @@ func (uc UserController) GetUser(ctx *gin.Context) {
 // @Param        address   query      string  false  "Address" *
 // @Param        passportSerialNumber   query      string  false  "PassportSerialNumber" *
 // @Param        passportNumber   query      string  false  "PassportNumber" *
-// @Success      200  {array}  models.Users
+// @Success      200  {array}  types.Users
 // @Failure      400
 // @Failure      404
 // @Failure      500
@@ -204,29 +221,14 @@ func (uc UserController) GetUsers(ctx *gin.Context) {
 		offset = 0
 	}
 	name := ctx.Query("name")
-	if name != "" {
-
-	}
 	surname := ctx.Query("surname")
-	if surname != "" {
-
-	}
 	patronimyc := ctx.Query("patronimyc")
-	if patronimyc != "" {
-
-	}
 	address := ctx.Query("address")
-	if address != "" {
-
-	}
 	passportSerialNumber := ctx.Query("passportSerialNumber")
-	if passportSerialNumber != "" {
-
-	}
 	passportNumber := ctx.Query("passportNumber")
 	response, responseErr := uc.userService.GetUsersBach(int(limit), int(offset), name, surname, patronimyc, address, passportSerialNumber, passportNumber)
 	if responseErr != nil {
-		ctx.JSON(responseErr.Status, responseErr)
+		ctx.AbortWithStatusJSON(responseErr.Status, responseErr)
 		return
 	}
 	ctx.JSON(http.StatusOK, response)
@@ -234,11 +236,11 @@ func (uc UserController) GetUsers(ctx *gin.Context) {
 
 func (uc UserController) Info(ctx *gin.Context) {
 	params := ctx.Request.URL.Query()
-	passportSerial := params.Get("passportSerie")
+	passportSerial := params.Get("passportSerial")
 	passportNumber := params.Get("passportNumber")
 	response, responseErr := uc.userService.Info(passportSerial, passportNumber)
 	if responseErr != nil {
-		ctx.JSON(responseErr.Status, responseErr)
+		ctx.AbortWithStatusJSON(responseErr.Status, responseErr)
 		return
 	}
 	ctx.JSON(http.StatusOK, response)

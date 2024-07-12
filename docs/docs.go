@@ -35,7 +35,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.PassportDocument"
+                            "$ref": "#/definitions/types.PassportDocument"
                         }
                     }
                 ],
@@ -75,7 +75,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Users"
+                            "$ref": "#/definitions/types.Users"
                         }
                     }
                 ],
@@ -153,7 +153,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.EndTask"
+                            "$ref": "#/definitions/types.EndTask"
                         }
                     }
                 ],
@@ -353,7 +353,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.StartTask"
+                            "$ref": "#/definitions/types.StartTask"
                         }
                     }
                 ],
@@ -396,7 +396,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Users"
+                            "$ref": "#/definitions/types.Users"
                         }
                     }
                 ],
@@ -418,7 +418,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "models.EndTask": {
+        "types.EndTask": {
             "type": "object",
             "properties": {
                 "task_name": {
@@ -429,7 +429,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.Labor": {
+        "types.Labor": {
             "type": "object",
             "properties": {
                 "count_tasks": {
@@ -443,7 +443,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.PassportDocument": {
+        "types.PassportDocument": {
             "type": "object",
             "properties": {
                 "passportNumber": {
@@ -451,7 +451,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.StartTask": {
+        "types.StartTask": {
             "type": "object",
             "properties": {
                 "task_name": {
@@ -462,7 +462,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.Users": {
+        "types.Users": {
             "type": "object",
             "properties": {
                 "address": {

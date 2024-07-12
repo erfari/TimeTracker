@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"TimeTracker/models"
-	"TimeTracker/services"
+	"TimeTracker/api/types"
+	"TimeTracker/internal/services"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"io"
@@ -28,7 +28,7 @@ func NewTaskController(taskService *services.TaskService) *TaskController {
 // @Accept json
 // @Produce json
 // @Param        user_id   query      int  true  "User ID"
-// @Success      200  {object}  models.Labor
+// @Success      200  {object}  types.Labor
 // @Failure      400
 // @Failure      404
 // @Failure      500
@@ -43,7 +43,7 @@ func (tc TaskController) LaborsCost(ctx *gin.Context) {
 	}
 	response, responseErr := tc.taskService.GetLaborCostsByUserId(userIdInt)
 	if responseErr != nil {
-		ctx.JSON(responseErr.Status, responseErr)
+		ctx.AbortWithStatusJSON(responseErr.Status, responseErr)
 		return
 	}
 	ctx.JSON(http.StatusOK, response)
@@ -55,7 +55,7 @@ func (tc TaskController) LaborsCost(ctx *gin.Context) {
 // @Tags tasks
 // @Accept json
 // @Produce json
-// @Param        request body models.StartTask true "start task json"
+// @Param        request body types.StartTask true "start task json"
 // @Success      204
 // @Failure      400
 // @Failure      404
@@ -66,14 +66,14 @@ func (tc TaskController) StartTask(ctx *gin.Context) {
 	body, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
 		log.Println("Error while reading update user request body", err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		return
 	}
-	var task models.StartTask
+	var task types.StartTask
 	err = json.Unmarshal(body, &task)
 	if err != nil {
 		log.Println("Error while unmarshaling update user request body", err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		return
 	}
 	responseErr := tc.taskService.StartTask(&task)
@@ -90,7 +90,7 @@ func (tc TaskController) StartTask(ctx *gin.Context) {
 // @Tags tasks
 // @Accept json
 // @Produce json
-// @Param        request body models.EndTask true "end task json"
+// @Param        request body types.EndTask true "end task json"
 // @Success      204
 // @Failure      400
 // @Failure      404
@@ -101,14 +101,14 @@ func (tc TaskController) EndTask(ctx *gin.Context) {
 	body, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
 		log.Println("Error while reading update user request body", err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		return
 	}
-	var task models.EndTask
+	var task types.EndTask
 	err = json.Unmarshal(body, &task)
 	if err != nil {
 		log.Println("Error while unmarshaling update user request body", err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		return
 	}
 	responseErr := tc.taskService.EndTask(&task)

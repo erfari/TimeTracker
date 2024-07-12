@@ -10,9 +10,6 @@ CREATE TABLE IF NOT EXISTS users
     created_at             TIMESTAMP    NOT NULL DEFAULT NOW()
 );
 
-INSERT INTO users(name, surname, patronymic, address)
-VALUES('test3', 'test3', 'test3', 'test3 street');
-
 -- +goose StatementEnd
 
 -- +goose Down

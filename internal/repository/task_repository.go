@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"TimeTracker/models"
+	"TimeTracker/api/types"
 	"database/sql"
 	"net/http"
 	"time"
@@ -18,7 +18,7 @@ func NewTaskRepository(dbHandler *sql.DB) *TaskRepository {
 	}
 }
 
-func (tr TaskRepository) StartTask(task *models.StartTask) *models.ResponseError {
+func (tr TaskRepository) StartTask(task *types.StartTask) *types.ResponseError {
 	query := `
 		UPDATE tasks
   		SET assignee_name=us.name, assignee_user_id=us.id, start_task=current_timestamp, end_task=current_timestamp
@@ -29,20 +29,20 @@ func (tr TaskRepository) StartTask(task *models.StartTask) *models.ResponseError
 	rows, err := tr.dbHandler.Exec(
 		query, task.UserName, task.TaskName)
 	if err != nil {
-		return &models.ResponseError{
+		return &types.ResponseError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
 	}
 	rowsAffected, err := rows.RowsAffected()
 	if err != nil {
-		return &models.ResponseError{
+		return &types.ResponseError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
 	}
 	if rowsAffected == 0 {
-		return &models.ResponseError{
+		return &types.ResponseError{
 			Message: "Task not found",
 			Status:  http.StatusNotFound,
 		}
@@ -50,7 +50,7 @@ func (tr TaskRepository) StartTask(task *models.StartTask) *models.ResponseError
 	return nil
 }
 
-func (tr TaskRepository) EndTask(task *models.EndTask) *models.ResponseError {
+func (tr TaskRepository) EndTask(task *types.EndTask) *types.ResponseError {
 	query := `
 		UPDATE tasks
   		SET assignee_name=us.name, assignee_user_id=us.id, end_task=current_timestamp
@@ -61,20 +61,20 @@ func (tr TaskRepository) EndTask(task *models.EndTask) *models.ResponseError {
 	rows, err := tr.dbHandler.Exec(
 		query, task.UserName, task.TaskName)
 	if err != nil {
-		return &models.ResponseError{
+		return &types.ResponseError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
 	}
 	rowsAffected, err := rows.RowsAffected()
 	if err != nil {
-		return &models.ResponseError{
+		return &types.ResponseError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
 	}
 	if rowsAffected == 0 {
-		return &models.ResponseError{
+		return &types.ResponseError{
 			Message: "Task not found",
 			Status:  http.StatusNotFound,
 		}
@@ -82,7 +82,7 @@ func (tr TaskRepository) EndTask(task *models.EndTask) *models.ResponseError {
 	return nil
 }
 
-func (tr TaskRepository) GetLabors(userId int) ([]*models.Task, *models.ResponseError) {
+func (tr TaskRepository) GetLabors(userId int) ([]*types.Task, *types.ResponseError) {
 	query := `
 			SELECT task_name, assignee_name, start_task, end_task
 			FROM tasks AS t
@@ -92,24 +92,24 @@ func (tr TaskRepository) GetLabors(userId int) ([]*models.Task, *models.Response
 `
 	rows, err := tr.dbHandler.Query(query, userId)
 	if err != nil {
-		return nil, &models.ResponseError{
+		return nil, &types.ResponseError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
 	}
 	defer rows.Close()
-	tasks := make([]*models.Task, 0)
+	tasks := make([]*types.Task, 0)
 	var taskName, assigneeName string
 	var startTask, endTask time.Time
 	for rows.Next() {
 		err := rows.Scan(&taskName, &assigneeName, &startTask, &endTask)
 		if err != nil {
-			return nil, &models.ResponseError{
+			return nil, &types.ResponseError{
 				Message: err.Error(),
 				Status:  http.StatusInternalServerError,
 			}
 		}
-		user := &models.Task{
+		user := &types.Task{
 			TaskName:     taskName,
 			AssigneeName: assigneeName,
 			StartTask:    startTask,
@@ -118,7 +118,7 @@ func (tr TaskRepository) GetLabors(userId int) ([]*models.Task, *models.Response
 		tasks = append(tasks, user)
 	}
 	if rows.Err() != nil {
-		return nil, &models.ResponseError{
+		return nil, &types.ResponseError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}

@@ -1,4 +1,4 @@
-package models
+package types
 
 type Labor struct {
 	UserID          int    `json:"user_id"`

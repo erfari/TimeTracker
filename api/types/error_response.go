@@ -1,4 +1,4 @@
-package models
+package types
 
 type ResponseError struct {
 	Message string `json:"message"`
