@@ -1,7 +1,7 @@
-package repository
+package user
 
 import (
-	"TimeTracker/api/types"
+	"TimeTracker/internal/entity"
 	"database/sql"
 	"net/http"
 )
@@ -17,7 +17,7 @@ func NewUserRepository(dbHandler *sql.DB) *UserRepository {
 	}
 }
 
-func (ur UserRepository) AddUser(user *types.Users) (*types.Users, *types.ResponseError) {
+func (ur UserRepository) AddUser(user *entity.Users) (*entity.Users, *entity.ResponseError) {
 	query := `
 				WITH ids AS(
     			INSERT INTO users(name, surname, patronymic, address)
@@ -28,7 +28,7 @@ func (ur UserRepository) AddUser(user *types.Users) (*types.Users, *types.Respon
 				SELECT id, $5, $6 FROM ids;`
 	rows, err := ur.dbHandler.Query(query, user.Name, user.Surname, user.Patronymic, user.Address, user.PassportNumber, user.PassportSerial)
 	if err != nil {
-		return nil, &types.ResponseError{
+		return nil, &entity.ResponseError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
@@ -38,19 +38,19 @@ func (ur UserRepository) AddUser(user *types.Users) (*types.Users, *types.Respon
 	for rows.Next() {
 		err := rows.Scan(&userId)
 		if err != nil {
-			return nil, &types.ResponseError{
+			return nil, &entity.ResponseError{
 				Message: err.Error(),
 				Status:  http.StatusInternalServerError,
 			}
 		}
 	}
 	if rows.Err() != nil {
-		return nil, &types.ResponseError{
+		return nil, &entity.ResponseError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
 	}
-	return &types.Users{
+	return &entity.Users{
 		ID:             userId,
 		Name:           user.Name,
 		Surname:        user.Surname,
@@ -61,7 +61,7 @@ func (ur UserRepository) AddUser(user *types.Users) (*types.Users, *types.Respon
 	}, nil
 }
 
-func (ur UserRepository) UpdateUser(user *types.Users) *types.ResponseError {
+func (ur UserRepository) UpdateUser(user *entity.Users) *entity.ResponseError {
 	query := `
 		WITH upd AS(
     	UPDATE users SET name=$1, surname=$2, patronymic=$3, address=$4 WHERE id=$5
@@ -70,20 +70,20 @@ func (ur UserRepository) UpdateUser(user *types.Users) *types.ResponseError {
 	rows, err := ur.dbHandler.Exec(
 		query, user.Name, user.Surname, user.Patronymic, user.Address, user.ID, user.PassportNumber, user.PassportSerial)
 	if err != nil {
-		return &types.ResponseError{
+		return &entity.ResponseError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
 	}
 	rowsAffected, err := rows.RowsAffected()
 	if err != nil {
-		return &types.ResponseError{
+		return &entity.ResponseError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
 	}
 	if rowsAffected == 0 {
-		return &types.ResponseError{
+		return &entity.ResponseError{
 			Message: "User not found",
 			Status:  http.StatusNotFound,
 		}
@@ -91,7 +91,7 @@ func (ur UserRepository) UpdateUser(user *types.Users) *types.ResponseError {
 	return nil
 }
 
-func (ur UserRepository) DeleteUser(userId string) *types.ResponseError {
+func (ur UserRepository) DeleteUser(userId string) *entity.ResponseError {
 	query := `
 		DELETE FROM users
 		WHERE id=$1
@@ -100,7 +100,7 @@ func (ur UserRepository) DeleteUser(userId string) *types.ResponseError {
 		query, userId)
 	defer rows.Close()
 	if err != nil {
-		return &types.ResponseError{
+		return &entity.ResponseError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
@@ -108,14 +108,14 @@ func (ur UserRepository) DeleteUser(userId string) *types.ResponseError {
 	for rows.Next() {
 		err := rows.Scan(&userId)
 		if err != nil {
-			return &types.ResponseError{
+			return &entity.ResponseError{
 				Message: err.Error(),
 				Status:  http.StatusInternalServerError,
 			}
 		}
 	}
 	if rows.Err() != nil {
-		return &types.ResponseError{
+		return &entity.ResponseError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
@@ -123,7 +123,7 @@ func (ur UserRepository) DeleteUser(userId string) *types.ResponseError {
 	return nil
 }
 
-func (ur UserRepository) GetUser(userId string) (*types.Users, *types.ResponseError) {
+func (ur UserRepository) GetUser(userId string) (*entity.Users, *entity.ResponseError) {
 	query := `
 			SELECT u.id, u.name, u.surname, u.patronymic, u.address, ud.passport_serial_number, ud.passport_number
 			FROM users AS u
@@ -131,7 +131,7 @@ func (ur UserRepository) GetUser(userId string) (*types.Users, *types.ResponseEr
 			WHERE u.id = $1;`
 	rows, err := ur.dbHandler.Query(query, userId)
 	if err != nil {
-		return nil, &types.ResponseError{
+		return nil, &entity.ResponseError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
@@ -141,19 +141,19 @@ func (ur UserRepository) GetUser(userId string) (*types.Users, *types.ResponseEr
 	for rows.Next() {
 		err := rows.Scan(&id, &name, &surname, &patronimyc, &address, &passport_serilal_number, &passport_number)
 		if err != nil {
-			return nil, &types.ResponseError{
+			return nil, &entity.ResponseError{
 				Message: err.Error(),
 				Status:  http.StatusInternalServerError,
 			}
 		}
 	}
 	if rows.Err() != nil {
-		return nil, &types.ResponseError{
+		return nil, &entity.ResponseError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
 	}
-	return &types.Users{
+	return &entity.Users{
 		ID:             id,
 		Name:           name,
 		Surname:        surname,
@@ -164,7 +164,7 @@ func (ur UserRepository) GetUser(userId string) (*types.Users, *types.ResponseEr
 	}, nil
 }
 
-func (ur UserRepository) GetAllUsers(limit int, offset int) ([]*types.Users, *types.ResponseError) {
+func (ur UserRepository) GetAllUsers(limit int, offset int) ([]*entity.Users, *entity.ResponseError) {
 	query := `
 			SELECT u.id, u.name, u.surname, u.patronymic, u.address, ud.passport_serial_number, ud.passport_number
 			FROM users AS u
@@ -174,24 +174,24 @@ func (ur UserRepository) GetAllUsers(limit int, offset int) ([]*types.Users, *ty
 `
 	rows, err := ur.dbHandler.Query(query, limit, offset)
 	if err != nil {
-		return nil, &types.ResponseError{
+		return nil, &entity.ResponseError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
 	}
 
 	defer rows.Close()
-	users := make([]*types.Users, 0)
+	users := make([]*entity.Users, 0)
 	var id, name, surname, patronimyc, address, passport_serilal_number, passport_number string
 	for rows.Next() {
 		err := rows.Scan(&id, &name, &surname, &patronimyc, &address, &passport_serilal_number, &passport_number)
 		if err != nil {
-			return nil, &types.ResponseError{
+			return nil, &entity.ResponseError{
 				Message: err.Error(),
 				Status:  http.StatusInternalServerError,
 			}
 		}
-		user := &types.Users{
+		user := &entity.Users{
 			ID:             id,
 			Name:           name,
 			Surname:        surname,
@@ -203,7 +203,7 @@ func (ur UserRepository) GetAllUsers(limit int, offset int) ([]*types.Users, *ty
 		users = append(users, user)
 	}
 	if rows.Err() != nil {
-		return nil, &types.ResponseError{
+		return nil, &entity.ResponseError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
@@ -212,7 +212,7 @@ func (ur UserRepository) GetAllUsers(limit int, offset int) ([]*types.Users, *ty
 }
 
 // TODO тут жестко, нужна норм фильтрация
-func (ur UserRepository) GetUserByParams(limit int, offset int, filterValue string) ([]*types.Users, *types.ResponseError) {
+func (ur UserRepository) GetUserByParams(limit int, offset int, filterValue string) ([]*entity.Users, *entity.ResponseError) {
 	query := `
 			SELECT u.id, u.name, u.surname, u.patronymic, u.address, ud.passport_serial_number, ud.passport_number
 			FROM users AS u
@@ -222,23 +222,23 @@ func (ur UserRepository) GetUserByParams(limit int, offset int, filterValue stri
 `
 	rows, err := ur.dbHandler.Query(query, limit, offset)
 	if err != nil {
-		return nil, &types.ResponseError{
+		return nil, &entity.ResponseError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
 	}
 	defer rows.Close()
-	users := make([]*types.Users, 0)
+	users := make([]*entity.Users, 0)
 	var id, name, surname, patronimyc, address, passport_serilal_number, passport_number string
 	for rows.Next() {
 		err := rows.Scan(&id, &name, &surname, &patronimyc, &address, &passport_serilal_number, &passport_number)
 		if err != nil {
-			return nil, &types.ResponseError{
+			return nil, &entity.ResponseError{
 				Message: err.Error(),
 				Status:  http.StatusInternalServerError,
 			}
 		}
-		user := &types.Users{
+		user := &entity.Users{
 			ID:             id,
 			Name:           name,
 			Surname:        surname,
@@ -255,7 +255,7 @@ func (ur UserRepository) GetUserByParams(limit int, offset int, filterValue stri
 
 	}
 	if rows.Err() != nil {
-		return nil, &types.ResponseError{
+		return nil, &entity.ResponseError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
@@ -263,7 +263,7 @@ func (ur UserRepository) GetUserByParams(limit int, offset int, filterValue stri
 	return users, nil
 }
 
-func (ur UserRepository) Info(passportSerial string, passportNumber string) (*types.Users, *types.ResponseError) {
+func (ur UserRepository) Info(passportSerial string, passportNumber string) (*entity.Users, *entity.ResponseError) {
 	query := `
 			SELECT u.id, u.name, u.surname, u.patronymic, u.address, ud.passport_serial_number, ud.passport_number
 			FROM users AS u
@@ -271,7 +271,7 @@ func (ur UserRepository) Info(passportSerial string, passportNumber string) (*ty
 			WHERE ud.passport_serial_number = $1 AND ud.passport_number = $2;`
 	rows, err := ur.dbHandler.Query(query, passportSerial, passportNumber)
 	if err != nil {
-		return nil, &types.ResponseError{
+		return nil, &entity.ResponseError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
@@ -281,19 +281,19 @@ func (ur UserRepository) Info(passportSerial string, passportNumber string) (*ty
 	for rows.Next() {
 		err := rows.Scan(&id, &name, &surname, &patronimyc, &address, &passport_serilal_number, &passport_number)
 		if err != nil {
-			return nil, &types.ResponseError{
+			return nil, &entity.ResponseError{
 				Message: err.Error(),
 				Status:  http.StatusInternalServerError,
 			}
 		}
 	}
 	if rows.Err() != nil {
-		return nil, &types.ResponseError{
+		return nil, &entity.ResponseError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
 	}
-	return &types.Users{
+	return &entity.Users{
 		ID:             id,
 		Name:           name,
 		Surname:        surname,
@@ -304,7 +304,7 @@ func (ur UserRepository) Info(passportSerial string, passportNumber string) (*ty
 	}, nil
 }
 
-func (ur UserRepository) AddUserApi(user *types.Users) (*types.Users, *types.ResponseError) {
+func (ur UserRepository) AddUserApi(user *entity.Users) (*entity.Users, *entity.ResponseError) {
 	query := `
 				WITH ids AS(
     			INSERT INTO users(name, surname, patronymic, address)
@@ -315,7 +315,7 @@ func (ur UserRepository) AddUserApi(user *types.Users) (*types.Users, *types.Res
 				SELECT id, $5, $6 FROM ids;`
 	rows, err := ur.dbHandler.Query(query, user.Name, user.Surname, user.Patronymic, user.Address, user.PassportNumber, user.PassportSerial)
 	if err != nil {
-		return nil, &types.ResponseError{
+		return nil, &entity.ResponseError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
@@ -325,19 +325,19 @@ func (ur UserRepository) AddUserApi(user *types.Users) (*types.Users, *types.Res
 	for rows.Next() {
 		err := rows.Scan(&userId)
 		if err != nil {
-			return nil, &types.ResponseError{
+			return nil, &entity.ResponseError{
 				Message: err.Error(),
 				Status:  http.StatusInternalServerError,
 			}
 		}
 	}
 	if rows.Err() != nil {
-		return nil, &types.ResponseError{
+		return nil, &entity.ResponseError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
 	}
-	return &types.Users{
+	return &entity.Users{
 		ID:             userId,
 		Name:           user.Name,
 		Surname:        user.Surname,

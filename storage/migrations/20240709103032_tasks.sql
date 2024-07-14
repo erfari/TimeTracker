@@ -9,7 +9,6 @@ CREATE TABLE IF NOT EXISTS tasks
     created_at       TIMESTAMP    NOT NULL DEFAULT NOW(),
     start_task       TIMESTAMP,
     end_task         TIMESTAMP
-
 );
 
 ALTER TABLE tasks

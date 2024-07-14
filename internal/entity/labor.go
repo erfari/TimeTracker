@@ -1,4 +1,4 @@
-package types
+package entity
 
 type Labor struct {
 	UserID          int    `json:"user_id"`

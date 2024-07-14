@@ -1,8 +1,7 @@
-package services
+package user
 
 import (
-	"TimeTracker/api/types"
-	repository "TimeTracker/internal/repository"
+	"TimeTracker/internal/entity"
 	"encoding/json"
 	"io"
 	"log"
@@ -10,19 +9,19 @@ import (
 	url "net/url"
 )
 
-type UserService struct {
-	userRepository *repository.UserRepository
+type Service struct {
+	UserRepository *UserRepository
 }
 
 func NewUserService(
-	userRepository *repository.UserRepository) *UserService {
-	return &UserService{
-		userRepository: userRepository,
+	UserRepository *UserRepository) *Service {
+	return &Service{
+		UserRepository: UserRepository,
 	}
 }
 
-// можно вынести в микросервис
-func getInfoUser(PassportSerial string, passportNumber string) (*types.Users, *types.ResponseError) {
+// можно вынести в микросервис ============================
+func getInfoUser(PassportSerial string, passportNumber string) (*entity.Users, *entity.ResponseError) {
 	params := url.Values{}
 	params.Add("PassportSerial", PassportSerial)
 	params.Add("passportNumber", passportNumber)
@@ -37,11 +36,11 @@ func getInfoUser(PassportSerial string, passportNumber string) (*types.Users, *t
 	if err != nil {
 		log.Fatalln(err)
 	}
-	var result types.Users
+	var result entity.Users
 	if err = json.Unmarshal(body, &result); err != nil {
 		log.Fatalln(err)
 	}
-	return &types.Users{
+	return &entity.Users{
 		Name:           result.Name,
 		Surname:        result.Surname,
 		Patronymic:     result.Patronymic,
@@ -56,45 +55,45 @@ func getInfoUser(PassportSerial string, passportNumber string) (*types.Users, *t
 2.
 */
 
-func (us *UserService) AddUserApi(passport *types.PassportDocument) (*types.Users, *types.ResponseError) {
+func (us *Service) AddUserApi(passport *entity.PassportDocument) (*entity.Users, *entity.ResponseError) {
 	passportSerialNumber := passport.PassportNumber[0:4]
 	passportNumber := passport.PassportNumber[5:11]
 	user, responseErr := getInfoUser(passportSerialNumber, passportNumber)
 	if responseErr != nil {
 		return nil, responseErr
 	}
-	return us.userRepository.AddUserApi(user)
+	return us.UserRepository.AddUserApi(user)
 }
 
-func (us *UserService) AddUser(user *types.Users) (*types.Users, *types.ResponseError) {
+func (us *Service) AddUser(user *entity.Users) (*entity.Users, *entity.ResponseError) {
 	responseErr := validateUser(user)
 	if responseErr != nil {
 		return nil, responseErr
 	}
-	return us.userRepository.AddUser(user)
+	return us.UserRepository.AddUser(user)
 }
 
-func validateUser(user *types.Users) *types.ResponseError {
+func validateUser(user *entity.Users) *entity.ResponseError {
 	if user.Name == "" {
-		return &types.ResponseError{
+		return &entity.ResponseError{
 			Message: "Invalid Name",
 			Status:  http.StatusBadRequest,
 		}
 	}
 	if user.Surname == "" {
-		return &types.ResponseError{
+		return &entity.ResponseError{
 			Message: "Invalid Surname",
 			Status:  http.StatusBadRequest,
 		}
 	}
 	if user.PassportSerial == "" || len([]rune(user.PassportSerial)) > 4 {
-		return &types.ResponseError{
+		return &entity.ResponseError{
 			Message: "Invalid Passport Serial Number",
 			Status:  http.StatusBadRequest,
 		}
 	}
 	if user.PassportNumber == "" || len([]rune(user.PassportNumber)) > 6 {
-		return &types.ResponseError{
+		return &entity.ResponseError{
 			Message: "Invalid Passport Passport Number",
 			Status:  http.StatusBadRequest,
 		}
@@ -102,39 +101,39 @@ func validateUser(user *types.Users) *types.ResponseError {
 	return nil
 }
 
-func (us *UserService) UpdateUser(user *types.Users) *types.ResponseError {
+func (us *Service) UpdateUser(user *entity.Users) *entity.ResponseError {
 	responseErr := validateUser(user)
 	if responseErr != nil {
 		return responseErr
 	}
-	return us.userRepository.UpdateUser(user)
+	return us.UserRepository.UpdateUser(user)
 }
 
-func (us *UserService) DeleteUser(userId string) *types.ResponseError {
+func (us *Service) DeleteUser(userId string) *entity.ResponseError {
 	if userId == "" {
-		return &types.ResponseError{
+		return &entity.ResponseError{
 			Message: "Invalid result ID",
 			Status:  http.StatusBadRequest,
 		}
 	}
-	err := repository.BeginTransaction(us.userRepository)
+	err := BeginTransaction(us.UserRepository)
 	if err != nil {
-		return &types.ResponseError{
+		return &entity.ResponseError{
 			Message: "Failed to start transaction",
 			Status:  http.StatusBadRequest,
 		}
 	}
 	//Добавить роллбек
-	responseErr := us.userRepository.DeleteUser(userId)
+	responseErr := us.UserRepository.DeleteUser(userId)
 	if responseErr != nil {
 		return responseErr
 	}
-	repository.CommitTransaction(us.userRepository)
+	CommitTransaction(us.UserRepository)
 	return nil
 }
 
-func (us *UserService) GetUser(userId string) (*types.Users, *types.ResponseError) {
-	user, responseErr := us.userRepository.GetUser(userId)
+func (us *Service) GetUser(userId string) (*entity.Users, *entity.ResponseError) {
+	user, responseErr := us.UserRepository.GetUser(userId)
 	if responseErr != nil {
 		return nil, responseErr
 	}
@@ -142,11 +141,11 @@ func (us *UserService) GetUser(userId string) (*types.Users, *types.ResponseErro
 }
 
 // TODO тут фильтрацию сделать по-человечески
-func (us *UserService) GetUsersBach(limit int, offset int, name, surname, patronimyc, address, passportSerialNumber, passportNumber string) ([]*types.Users, *types.ResponseError) {
+func (us *Service) GetUsersBach(limit int, offset int, name, surname, patronimyc, address, passportSerialNumber, passportNumber string) ([]*entity.Users, *entity.ResponseError) {
 	if name != "" {
-		users, responseErr := us.userRepository.GetUserByParams(limit, offset, name)
+		users, responseErr := us.UserRepository.GetUserByParams(limit, offset, name)
 		if responseErr != nil {
-			return nil, &types.ResponseError{
+			return nil, &entity.ResponseError{
 				Message: "Invalid Passport Passport Number",
 				Status:  http.StatusNotFound,
 			}
@@ -154,49 +153,49 @@ func (us *UserService) GetUsersBach(limit int, offset int, name, surname, patron
 		return users, nil
 	}
 	if surname != "" {
-		users, responseErr := us.userRepository.GetUserByParams(limit, offset, surname)
+		users, responseErr := us.UserRepository.GetUserByParams(limit, offset, surname)
 		if responseErr != nil {
 			return nil, responseErr
 		}
 		return users, nil
 	}
 	if patronimyc != "" {
-		users, responseErr := us.userRepository.GetUserByParams(limit, offset, patronimyc)
+		users, responseErr := us.UserRepository.GetUserByParams(limit, offset, patronimyc)
 		if responseErr != nil {
 			return nil, responseErr
 		}
 		return users, nil
 	}
 	if address != "" {
-		users, responseErr := us.userRepository.GetUserByParams(limit, offset, address)
+		users, responseErr := us.UserRepository.GetUserByParams(limit, offset, address)
 		if responseErr != nil {
 			return nil, responseErr
 		}
 		return users, nil
 	}
 	if passportSerialNumber != "" {
-		users, responseErr := us.userRepository.GetUserByParams(limit, offset, passportSerialNumber)
+		users, responseErr := us.UserRepository.GetUserByParams(limit, offset, passportSerialNumber)
 		if responseErr != nil {
 			return nil, responseErr
 		}
 		return users, nil
 	}
 	if passportNumber != "" {
-		users, responseErr := us.userRepository.GetUserByParams(limit, offset, passportNumber)
+		users, responseErr := us.UserRepository.GetUserByParams(limit, offset, passportNumber)
 		if responseErr != nil {
 			return nil, responseErr
 		}
 		return users, nil
 	}
-	users, responseErr := us.userRepository.GetAllUsers(limit, offset)
+	users, responseErr := us.UserRepository.GetAllUsers(limit, offset)
 	if responseErr != nil {
 		return nil, responseErr
 	}
 	return users, nil
 }
 
-func (us *UserService) Info(passportSerial string, passportNumber string) (*types.Users, *types.ResponseError) {
-	user, responseErr := us.userRepository.Info(passportSerial, passportNumber)
+func (us *Service) Info(passportSerial string, passportNumber string) (*entity.Users, *entity.ResponseError) {
+	user, responseErr := us.UserRepository.Info(passportSerial, passportNumber)
 	if responseErr != nil {
 		return nil, responseErr
 	}

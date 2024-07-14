@@ -2,9 +2,9 @@ package app
 
 import (
 	"TimeTracker/docs"
-	controllers "TimeTracker/internal/controllers"
-	repository "TimeTracker/internal/repository"
-	services "TimeTracker/internal/services"
+	"TimeTracker/internal/controller/http"
+	"TimeTracker/internal/usecase/tasks"
+	services "TimeTracker/internal/usecase/user"
 	"database/sql"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -16,19 +16,19 @@ import (
 type HttpServer struct {
 	config         *viper.Viper
 	router         *gin.Engine
-	userController *controllers.UserController
+	userController *http.UserController
 }
 
 func InitHttpServer(config *viper.Viper, dbHandler *sql.DB) (HttpServer, error) {
 	//user
-	userRepository := repository.NewUserRepository(dbHandler)
+	userRepository := services.NewUserRepository(dbHandler)
 	userService := services.NewUserService(userRepository)
-	userController := controllers.NewUserController(userService)
+	userController := http.NewUserController(userService)
 
 	//task
-	taskRepository := repository.NewTaskRepository(dbHandler)
-	taskService := services.NewTaskService(taskRepository)
-	taskController := controllers.NewTaskController(taskService)
+	taskRepository := tasks.NewTaskRepository(dbHandler)
+	taskService := tasks.NewTaskService(taskRepository)
+	taskController := http.NewTaskController(taskService)
 
 	router := gin.Default()
 	// user
@@ -43,6 +43,9 @@ func InitHttpServer(config *viper.Viper, dbHandler *sql.DB) (HttpServer, error) 
 	//tasks
 	router.PUT("/start_task", taskController.StartTask)
 	router.PUT("/end_task", taskController.EndTask)
+	router.POST("/add_task", taskController.AddTask)
+	router.POST("/get_task", taskController.GetTask)
+	router.POST("/update_task", taskController.UpdateTask)
 	router.GET("/get_labor_costs", taskController.LaborsCost)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

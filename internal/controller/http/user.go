@@ -1,7 +1,7 @@
-package controllers
+package http
 
 import (
-	"TimeTracker/api/types"
+	"TimeTracker/internal/entity"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"io"
@@ -11,13 +11,13 @@ import (
 )
 
 type UserService interface {
-	AddUserApi(passport *types.PassportDocument) (*types.Users, *types.ResponseError)
-	AddUser(user *types.Users) (*types.Users, *types.ResponseError)
-	UpdateUser(user *types.Users) *types.ResponseError
-	DeleteUser(userId string) *types.ResponseError
-	GetUser(userId string) (*types.Users, *types.ResponseError)
-	GetUsersBach(limit int, offset int, name, surname, patronimyc, address, passportSerialNumber, passportNumber string) ([]*types.Users, *types.ResponseError)
-	Info(passportSerial string, passportNumber string) (*types.Users, *types.ResponseError)
+	AddUserApi(passport *entity.PassportDocument) (*entity.Users, *entity.ResponseError)
+	AddUser(user *entity.Users) (*entity.Users, *entity.ResponseError)
+	UpdateUser(user *entity.Users) *entity.ResponseError
+	DeleteUser(userId string) *entity.ResponseError
+	GetUser(userId string) (*entity.Users, *entity.ResponseError)
+	GetUsersBach(limit int, offset int, name, surname, patronimyc, address, passportSerialNumber, passportNumber string) ([]*entity.Users, *entity.ResponseError)
+	Info(passportSerial string, passportNumber string) (*entity.Users, *entity.ResponseError)
 }
 
 type UserController struct {
@@ -50,7 +50,7 @@ func (uc UserController) AddUserApi(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		return
 	}
-	var userDocument types.PassportDocument
+	var userDocument entity.PassportDocument
 	err = json.Unmarshal(body, &userDocument)
 	if err != nil {
 		log.Println("Error while unmarshaling create user request body", err)
@@ -87,7 +87,7 @@ func (uc UserController) AddUser(ctx *gin.Context) {
 		})
 		return
 	}
-	var user types.Users
+	var user entity.Users
 	err = json.Unmarshal(body, &user)
 	if err != nil {
 		log.Println("Error while unmarshaling create user request body", err)
@@ -126,7 +126,7 @@ func (uc UserController) UpdateUser(ctx *gin.Context) {
 		})
 		return
 	}
-	var user types.Users
+	var user entity.Users
 	err = json.Unmarshal(body, &user)
 	if err != nil {
 		log.Println("Error while unmarshaling update user request body", err)
